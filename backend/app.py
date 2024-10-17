@@ -6,39 +6,22 @@ from bs4 import BeautifulSoup
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from larksuiteoapi import Config, DefaultLogger, LEVEL_DEBUG, AppSettings, DOMAIN_FEISHU
-from larksuiteoapi.service.im.v1 import Service as ImService
 
 load_dotenv()  # 加载环境变量
 
 app = Flask(__name__)
 CORS(app)
 
-# 从环境变量获取飞书的 App ID 和 App Secret
-APP_ID = os.getenv("FEISHU_APP_ID")
-APP_SECRET = os.getenv("FEISHU_APP_SECRET")
-
-# 检查 APP_ID 和 APP_SECRET 是否已设置
-if not APP_ID or not APP_SECRET:
-    raise ValueError("请在环境变量中设置 FEISHU_APP_ID 和 FEISHU_APP_SECRET")
-
-# 创建应用设置
-app_settings = AppSettings(app_id=APP_ID, app_secret=APP_SECRET, app_type="Internal")
-
-# 创建配置对象，使用 log_level 参数设置日志级别
-conf = Config(domain=DOMAIN_FEISHU, app_settings=app_settings, log_level=LEVEL_DEBUG)
-
-# 创建飞书 IM 服务实例
-im_service = ImService(conf)
+# 从环境变量获取 Moonshot API Key
+MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY")
+if not MOONSHOT_API_KEY:
+    raise ValueError("请在环境变量中设置 MOONSHOT_API_KEY")
 
 class MoonshotAI:
     def __init__(self):
         self.url = "https://api.moonshot.cn/v1/chat/completions"
-        api_key = os.getenv("MOONSHOT_API_KEY")  # 从环境变量获取 API 密钥
-        if not api_key:
-            raise ValueError("请在环境变量中设置 MOONSHOT_API_KEY")
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {MOONSHOT_API_KEY}",
             "Content-Type": "application/json"
         }
 
@@ -209,16 +192,6 @@ def further_summarize():
         })
     else:
         return jsonify({"error": "Failed to generate detailed summary"}), 500
-
-# 飞书事件处理
-@app.route('/feishu/event', methods=['POST'])
-def feishu_event():
-    event = request.get_json()
-    # 处理飞书的事件，例如消息接收、验证等
-    # 您需要根据飞书的文档，验证事件请求的合法性
-    return jsonify({"code": 0, "msg": "success"})
-
-
 
 if __name__ == "__main__":
     app.run(port=5000)
