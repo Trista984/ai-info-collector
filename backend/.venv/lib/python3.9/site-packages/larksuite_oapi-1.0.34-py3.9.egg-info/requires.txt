@@ -1,0 +1,6 @@
+pycryptodome>=3.0.0
+attrs>=19.0.0
+requests>=2.20.0
+
+[:python_version < "3.5"]
+typing
